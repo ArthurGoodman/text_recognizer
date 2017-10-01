@@ -1,0 +1,6 @@
+[submodule "CImg"]
+	path = CImg
+	url = https://github.com/dtschump/CImg
+[submodule "label"]
+	path = label
+	url = https://github.com/ArthurGoodman/label
