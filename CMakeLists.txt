@@ -3,4 +3,9 @@ project(text_recognizer)
 
 set(CMAKE_CXX_STANDARD 11)
 
-add_subdirectory(str_generator)
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/lib)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/lib)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
+
+add_subdirectory(label)
+add_subdirectory(img_generator)
