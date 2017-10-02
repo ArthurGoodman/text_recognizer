@@ -1,5 +1,6 @@
 #include <cstdlib>
 #include <iostream>
+#include <string>
 #include <vector>
 
 #include "CImg.h"
@@ -25,13 +26,13 @@ void printHelp() {
         << "Options:\n\n"
            "  --help                       Display this message.\n"
            "  -a, --all_chars              Generate all symbols from 'A' to 'Z' and ' '.\n"
-           "  -h, --height <int>           Set the height of text. Default = 53.\n"
+           "  -h, --height <int>           Set the height of text in pixels. Default = 53.\n"
            "  -n, --noise [0..10]          Set the noise level to be applied. Default = 0.\n\n";
 }
 
 void applyNoise(cimg_library::CImg<pixel_t> &img) {
-    for (size_t x = 0; x < img.width(); x++)
-        for (size_t y = 0; y < img.height(); y++) {
+    for (int x = 0; x < img.width(); x++)
+        for (int y = 0; y < img.height(); y++) {
             int delta = rand() % noise - noise / 2;
             img.atXY(x, y) = std::max(0, std::min(img.atXY(x, y) + delta, 255));
         }
@@ -61,7 +62,7 @@ void parseArgs(int argc, char **argv) {
         return;
     }
 
-    size_t i = 1;
+    int i = 1;
     std::string arg = argv[i++];
 
     auto next_arg = [&]() { arg = i++ < argc ? argv[i - 1] : ""; };
