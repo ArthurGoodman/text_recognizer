@@ -18,7 +18,7 @@ namespace detail {
 const char *dataPath = "data/";
 const char *alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ ";
 
-using value_t = ValueWrapper<double, oper::min, oper::plus>;
+using value_t = ValueWrapper<uint64_t, oper::min, oper::plus>;
 
 std::vector<image_t> chars;
 std::vector<std::vector<value_t>> weights;
@@ -38,8 +38,8 @@ value_t calcWeight(const image_t &img, const image_t &char_img, int pos) {
 
     for (int x = 0; x < char_img.width(); x++)
         for (int y = 0; y < char_img.height(); y++) {
-            uint32_t a = img.atXY(pos + x, y);
-            uint32_t b = char_img.atXY(x, y);
+            int32_t a = img.atXY(pos + x, y);
+            int32_t b = char_img.atXY(x, y);
 
             w += (a - b) * (a - b);
         }
@@ -64,20 +64,18 @@ void findPath() {
     for (size_t j = 0; j < chars.size(); j++)
         w_vert.atXY(0, j) = weights[j][0];
 
-    for (int i = 1; i < img_width; i++) {
-        std::cout << "i=" << i << std::endl;
+    for (int i = 1; i < img_width; i++)
+        for (size_t j = 0; j < chars.size(); j++)
+            w_vert.atXY(i, j) = value_t::zero();
 
+    for (int i = 1; i < img_width; i++) {
         for (size_t j = 0; j < chars.size(); j++) {
             if (i < chars[j].width()) {
                 w_vert.atXY(i, j) = value_t::zero();
                 continue;
             }
 
-            std::cout << "j=" << j << std::endl;
-
             size_t prev_i = i - chars[j].width();
-
-            std::cout << "prev_i=" << prev_i << std::endl;
 
             for (size_t k = 0; k < chars.size(); k++)
                 w_vert.atXY(i, j) += w_vert.atXY(prev_i, k) * weights[j][prev_i];
@@ -89,20 +87,22 @@ void findPath() {
         for (size_t j = 0; j < chars.size(); j++)
             v.emplace_back(w_vert.atXY(i, j));
 
-        size_t arg;
-        value_t::argplus(v, arg);
-        path.emplace_back(int(arg));
-
-        std::cout << ":" << alphabet[arg] << std::endl;
+        path.emplace_back(int(value_t::argplus(v)));
     }
 }
 
 std::string buildString() {
     std::string str;
 
-    for (int i = int(path.size()) - 1; i >= 0;) {
-        str += alphabet[path[i]];
-        i -= chars[path[i]].width();
+    for (int k = 10; k >= 1; k--) {
+        str = "";
+
+        for (int i = int(path.size()) - k; i >= 0;) {
+            str += alphabet[path[i]];
+            i -= chars[path[i]].width();
+        }
+
+        std::cout << "\"" << std::string(str.rbegin(), str.rend()) << "\"" << std::endl;
     }
 
     return std::string(str.rbegin(), str.rend());
@@ -130,7 +130,7 @@ int main(int argc, char **argv) {
     (void)argc;
     (void)argv;
 
-    recognizer::image_t img = recognizer::image_t::get_load_bmp("HELLO WORLD.bmp");
+    recognizer::image_t img = recognizer::image_t::get_load_bmp("img.bmp");
     std::cout << '"' << recognizer::recognize(img) << '"' << std::endl;
 
     return 0;
