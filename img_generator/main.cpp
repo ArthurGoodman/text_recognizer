@@ -73,7 +73,7 @@ void parseArgs(int argc, char **argv) {
             detail::printHelp();
             return;
         } else if (arg == "--all_chars" || arg == "-a") {
-            for (const char *pc = "ABCDEFGHIJKLMNOPQRSTUVWXYZ "; *pc; pc++)
+            for (const char *pc = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"; *pc; pc++)
                 detail::strings.push_back(std::string(1, *pc));
         } else if (arg == "--height" || arg == "-h") {
             next_arg();
