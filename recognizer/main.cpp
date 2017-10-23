@@ -59,35 +59,31 @@ void calcWeights(const image_t &img) {
 }
 
 void findPath() {
-    CImg<value_t> w_vert(img_width, chars.size());
+    std::vector<std::vector<value_t>> w_vert;
+    w_vert.resize(img_width);
+
+    for (auto &v : w_vert) {
+        v.reserve(chars.size());
+
+        for (size_t j = 0; j < chars.size(); j++)
+            v.emplace_back(value_t::zero());
+    }
 
     for (size_t j = 0; j < chars.size(); j++)
-        w_vert.atXY(0, j) = weights[j][0];
-
-    for (int i = 1; i < img_width; i++)
-        for (size_t j = 0; j < chars.size(); j++)
-            w_vert.atXY(i, j) = value_t::zero();
+        w_vert[0][j] = weights[j][0];
 
     for (int i = 1; i < img_width; i++) {
         for (size_t j = 0; j < chars.size(); j++) {
-            if (i < chars[j].width()) {
-                w_vert.atXY(i, j) = value_t::zero();
+            if (i < chars[j].width())
                 continue;
-            }
 
             size_t prev_i = i - chars[j].width();
 
             for (size_t k = 0; k < chars.size(); k++)
-                w_vert.atXY(i, j) += w_vert.atXY(prev_i, k) * weights[j][prev_i];
+                w_vert[i][j] += w_vert[prev_i][k] * weights[j][prev_i];
         }
 
-        std::vector<value_t> v;
-        v.reserve(chars.size());
-
-        for (size_t j = 0; j < chars.size(); j++)
-            v.emplace_back(w_vert.atXY(i, j));
-
-        path.emplace_back(int(value_t::argplus(v)));
+        path.emplace_back(value_t::argplus(w_vert[i]));
     }
 }
 
