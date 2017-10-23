@@ -26,6 +26,8 @@ std::vector<int> path;
 int img_width;
 
 void loadChars() {
+    std::cout << "Loading characters..." << std::endl;
+
     for (const char *pc = alphabet; *(pc + 1); pc++)
         chars.emplace_back(image_t::get_load_bmp((std::string(dataPath) + *pc + ".bmp").c_str()));
 
@@ -48,6 +50,8 @@ value_t calcWeight(const image_t &img, const image_t &char_img, int pos) {
 }
 
 void calcWeights(const image_t &img) {
+    std::cout << "Building graph..." << std::endl;
+
     for (auto &char_img : chars) {
         std::vector<value_t> w;
 
@@ -59,15 +63,13 @@ void calcWeights(const image_t &img) {
 }
 
 void findPath() {
+    std::cout << "Finding the shortest path..." << std::endl;
+
     std::vector<std::vector<value_t>> w_vert;
     w_vert.resize(img_width);
 
-    for (auto &v : w_vert) {
-        v.reserve(chars.size());
-
-        for (size_t j = 0; j < chars.size(); j++)
-            v.emplace_back(value_t::zero());
-    }
+    for (auto &v : w_vert)
+        v.resize(chars.size());
 
     for (size_t j = 0; j < chars.size(); j++)
         w_vert[0][j] = weights[j][0];
@@ -90,15 +92,9 @@ void findPath() {
 std::string buildString() {
     std::string str;
 
-    for (int k = 10; k >= 1; k--) {
-        str = "";
-
-        for (int i = int(path.size()) - k; i >= 0;) {
-            str += alphabet[path[i]];
-            i -= chars[path[i]].width();
-        }
-
-        std::cout << "\"" << std::string(str.rbegin(), str.rend()) << "\"" << std::endl;
+    for (int i = int(path.size()) - 1; i >= 0;) {
+        str += alphabet[path[i]];
+        i -= chars[path[i]].width();
     }
 
     return std::string(str.rbegin(), str.rend());
@@ -127,7 +123,7 @@ int main(int argc, char **argv) {
     (void)argv;
 
     recognizer::image_t img = recognizer::image_t::get_load_bmp("img.bmp");
-    std::cout << '"' << recognizer::recognize(img) << '"' << std::endl;
+    std::cout << "\n\"" << recognizer::recognize(img) << '"' << std::endl;
 
     return 0;
 }
