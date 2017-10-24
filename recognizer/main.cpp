@@ -71,18 +71,18 @@ void findPath() {
     for (auto &v : w_vert)
         v.resize(chars.size());
 
-    for (size_t j = 0; j < chars.size(); j++)
-        w_vert[0][j] = weights[j][0];
-
-    for (int i = 1; i < img_width; i++) {
+    for (int i = 0; i < img_width; i++) {
         for (size_t j = 0; j < chars.size(); j++) {
-            if (i < chars[j].width())
+            if (i < chars[j].width() - 1)
                 continue;
 
-            size_t prev_i = i - chars[j].width();
+            int prev_i = i - chars[j].width();
 
-            for (size_t k = 0; k < chars.size(); k++)
-                w_vert[i][j] += w_vert[prev_i][k] * weights[j][prev_i];
+            if (prev_i > 0)
+                for (size_t k = 0; k < chars.size(); k++)
+                    w_vert[i][j] += w_vert[prev_i][k] * weights[j][prev_i + 1];
+            else
+                w_vert[i][j] = weights[j][prev_i + 1];
         }
 
         path.emplace_back(value_t::argplus(w_vert[i]));
@@ -93,7 +93,9 @@ std::string buildString() {
     std::string str;
 
     for (int i = int(path.size()) - 1; i >= 0;) {
-        str += alphabet[path[i]];
+        if (alphabet[path[i]] != ' ' || str.back() != ' ')
+            str += alphabet[path[i]];
+
         i -= chars[path[i]].width();
     }
 
@@ -112,18 +114,16 @@ std::string recognize(const image_t &img) {
 
 } // namespace detail
 
-std::string recognize(const image_t &img) {
+std::string recognize(const char *file_name) {
+    recognizer::image_t img = recognizer::image_t::get_load_bmp(file_name);
     return detail::recognize(img);
 }
 
 } // namespace recognizer
 
 int main(int argc, char **argv) {
-    (void)argc;
-    (void)argv;
-
-    recognizer::image_t img = recognizer::image_t::get_load_bmp("img.bmp");
-    std::cout << "\n\"" << recognizer::recognize(img) << '"' << std::endl;
+    if (argc > 1)
+        std::cout << "\n\"" << recognizer::recognize(argv[1]) << "\"\n";
 
     return 0;
 }
