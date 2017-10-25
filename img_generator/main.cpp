@@ -3,6 +3,8 @@
 #include <string>
 #include <vector>
 
+#include <dirent.h>
+
 #include "CImg.h"
 
 namespace generator {
@@ -16,16 +18,20 @@ std::vector<std::string> strings;
 int height = 53;
 int noise = 0;
 
+std::string output;
+bool output_specified = false;
+
 void printUsage() {
     std::cout << "Usage:\n\n"
-                 "  ./generate [options] {<string>}\n\n";
+                 "  generate [options] {<string>}\n\n";
 }
 
 void printHelp() {
     std::cout
         << "Options:\n\n"
            "  --help                       Display this message.\n"
-           "  -a, --all_chars              Generate all symbols from 'A' to 'Z' and ' '.\n"
+           "  -o, --output                 Specify output file or directory. Default = image.bmp.\n"
+           "  -a, --all_chars              Generate all symbols from 'A' to 'Z'.\n"
            "  -h, --height <int>           Set the height of text in pixels. Default = 53.\n"
            "  -n, --noise [0..10]          Set the noise level to be applied. Default = 0.\n\n";
 }
@@ -49,7 +55,36 @@ void drawString(const std::string &str) {
     if (noise > 0)
         applyNoise(img);
 
-    std::string file_name = str + ".bmp";
+    std::string file_name;
+
+    DIR *dir = opendir(output.c_str());
+
+    if (strings.size() > 1) {
+        if (!dir)
+            throw std::runtime_error("invalid directory specified for output");
+
+        if (output.back() != '/')
+            output += '/';
+
+        if (output_specified) {
+            file_name = output + str + ".bmp";
+        } else
+            file_name = str + ".bmp";
+    } else {
+        if (output_specified) {
+            if (dir) {
+                if (output.back() != '/')
+                    output += '/';
+
+                file_name = output + "image.bmp";
+            } else
+                file_name = output;
+        } else
+            file_name = "image.bmp";
+    }
+
+    closedir(dir);
+
     img.save_bmp(file_name.c_str());
 }
 
@@ -58,7 +93,7 @@ void drawString(const std::string &str) {
 void parseArgs(int argc, char **argv) {
     if (argc < 2) {
         detail::printUsage();
-        std::cout << "Run ./generate --help for more information.\n\n";
+        std::cout << "Run 'generate --help' for more information.\n\n";
         return;
     }
 
@@ -72,6 +107,14 @@ void parseArgs(int argc, char **argv) {
             detail::printUsage();
             detail::printHelp();
             return;
+        } else if (arg == "--output" || arg == "-o") {
+            next_arg();
+
+            if (i > argc)
+                throw std::runtime_error("argument expected after --output option");
+
+            detail::output = arg.c_str();
+            detail::output_specified = true;
         } else if (arg == "--all_chars" || arg == "-a") {
             for (const char *pc = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"; *pc; pc++)
                 detail::strings.push_back(std::string(1, *pc));
@@ -109,8 +152,10 @@ void parseArgs(int argc, char **argv) {
         next_arg();
     }
 
-    for (; i <= argc; next_arg())
+    if (i <= argc)
         detail::strings.push_back(arg);
+    else if (detail::strings.empty())
+        throw std::runtime_error("no string specified");
 }
 
 void run() {
@@ -132,4 +177,3 @@ int main(int argc, char **argv) {
 
     return 0;
 }
-
