@@ -21,10 +21,21 @@ const char *alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ ";
 
 using value_t = ValueWrapper<uint64_t, oper::min, oper::plus>;
 
+std::string file_name;
 std::vector<image_t> chars;
 std::vector<std::vector<value_t>> weights;
 std::vector<int> path;
 int img_width;
+
+void printUsage() {
+    std::cout << "Usage:\n\n"
+                 "  recognize [options] <path_to_image>\n\n";
+}
+
+void printHelp() {
+    std::cout << "Options:\n\n"
+                 "  -h, --help                   Display this message.\n\n";
+}
 
 void loadChars() {
     std::cout << "Loading characters..." << std::endl;
@@ -115,16 +126,51 @@ std::string recognize(const image_t &img) {
 
 } // namespace detail
 
-std::string recognize(const char *file_name) {
-    recognizer::image_t img = recognizer::image_t::get_load_bmp(file_name);
+bool parseArgs(int argc, char **argv) {
+    if (argc < 2) {
+        detail::printUsage();
+        std::cout << "Run 'recognize --help' for more information.\n\n";
+        return false;
+    }
+
+    int i = 1;
+    std::string arg = argv[i++];
+
+    auto next_arg = [&]() { arg = i++ < argc ? argv[i - 1] : ""; };
+
+    while (arg.substr(0, 1) == "-") {
+        if (arg == "--help") {
+            detail::printUsage();
+            detail::printHelp();
+            return false;
+        } else
+            throw std::runtime_error("unknown command '" + arg + "'");
+
+        next_arg();
+    }
+
+    if (i <= argc)
+        detail::file_name = arg;
+    else
+        throw std::runtime_error("no string specified");
+
+    return true;
+}
+
+std::string recognize() {
+    recognizer::image_t img = image_t::get_load_bmp(detail::file_name.c_str());
     return detail::recognize(img);
 }
 
 } // namespace recognizer
 
 int main(int argc, char **argv) {
-    if (argc > 1)
-        std::cout << "\n\"" << recognizer::recognize(argv[1]) << "\"\n";
+    try {
+        if (recognizer::parseArgs(argc, argv))
+            std::cout << "\n\"" << recognizer::recognize() << "\"\n" << std::endl;
+    } catch (const std::runtime_error &e) {
+        std::cout << "error: " << e.what() << std::endl;
+    }
 
     return 0;
 }
