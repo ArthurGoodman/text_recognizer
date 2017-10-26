@@ -1,6 +1,12 @@
 [submodule "CImg"]
 	path = CImg
 	url = https://github.com/dtschump/CImg
+	branch = master
 [submodule "label"]
 	path = label
 	url = https://github.com/ArthurGoodman/label
+	branch = master
+[submodule "dirent"]
+	path = dirent
+	url = https://github.com/tronkko/dirent
+	branch = master

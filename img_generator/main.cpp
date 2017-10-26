@@ -1,4 +1,5 @@
 #include <cstdlib>
+#include <algorithm>
 #include <iostream>
 #include <string>
 #include <vector>
@@ -40,7 +41,7 @@ void applyNoise(cimg_library::CImg<pixel_t> &img) {
     for (int x = 0; x < img.width(); x++)
         for (int y = 0; y < img.height(); y++) {
             int delta = rand() % noise - noise / 2;
-            img.atXY(x, y) = std::max(0, std::min(img.atXY(x, y) + delta, 255));
+            img.atXY(x, y) = std::max<int>(0, std::min<int>(img.atXY(x, y) + delta, 255));
         }
 }
 
